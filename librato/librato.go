@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/rcrowley/go-metrics"
+	"github.com/ashirko/go-metrics"
 )
 
 // a regexp for extracting the unit from time.Duration.String
