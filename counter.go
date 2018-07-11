@@ -27,6 +27,12 @@ func NewCounter() Counter {
 	}
 	return &StandardCounter{0}
 }
+func NewCustomCounter() Counter {
+	if UseNilMetrics {
+		return NilCounter{}
+	}
+	return &CustomCounter{0}
+}
 
 // NewRegisteredCounter constructs and registers a new StandardCounter.
 func NewRegisteredCounter(name string, r Registry) Counter {
@@ -108,5 +114,35 @@ func (c *StandardCounter) Inc(i int64) {
 
 // Snapshot returns a read-only copy of the counter.
 func (c *StandardCounter) Snapshot() Counter {
+	return CounterSnapshot(c.Count())
+}
+type CustomCounter struct {
+	count int64
+}
+
+// Clear sets the counter to zero.
+func (c *CustomCounter) Clear() {
+	atomic.StoreInt64(&c.count, 0)
+}
+
+// Count returns the current count.
+func (c *CustomCounter) Count() int64 {
+	count := atomic.LoadInt64(&c.count)
+	c.Clear()
+	return count
+}
+
+// Dec decrements the counter by the given amount.
+func (c *CustomCounter) Dec(i int64) {
+	atomic.AddInt64(&c.count, -i)
+}
+
+// Inc increments the counter by the given amount.
+func (c *CustomCounter) Inc(i int64) {
+	atomic.AddInt64(&c.count, i)
+}
+
+// Snapshot returns a read-only copy of the counter.
+func (c *CustomCounter) Snapshot() Counter {
 	return CounterSnapshot(c.Count())
 }
